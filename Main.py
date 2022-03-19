@@ -55,9 +55,11 @@ class Main:
     ]
     def __init__(self):
         self.map = [[0 for i in range(10)] for i in range(20)]
-        self.block = [1, 0, 5, 4] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
+        self.block = [1, 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
+        self.block_x = 5
+        self.block_y = 4
     def nextTick(self):
-        self.block[2] += 1
+        self.block_x += 1
     def turnBlock(self, dir): # dir 은 r 또는 l 만 받음
         if(dir == "r"):
             self.block[1] = (self.block[1] + 1) % 4
@@ -74,8 +76,8 @@ class Main:
         if Main.block[0] != -1:
             for i in range(4):
                 for j in range(4):
-                    x = i + self.block[2]
-                    y = j + self.block[3]
+                    x = i + self.block_x
+                    y = j + self.block_y
                     if x < 0 or x >=20:
                         continue
                     if y < 0 or y >=10:
