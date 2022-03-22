@@ -96,7 +96,9 @@ def print_map(map):
         print("")
 
 main = Main()
-print_map(main.getMap())
-main.nextTick()
-print("")
-print_map(main.getMap())
+
+if __name__ == "__main__":
+    print_map(main.getMap())
+    main.nextTick()
+    print("")
+    print_map(main.getMap())
