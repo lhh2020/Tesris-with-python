@@ -1,5 +1,10 @@
 import random
 import time
+import threading
+import pygame
+from pygame.locals import QUIT, KEYDOWN, K_LEFT, K_RIGHT, K_DOWN, K_SPACE
+
+
 class Main:
     block_kind = 7
     block = [
@@ -278,6 +283,18 @@ class Main:
                     map_c[x][y] = Main.block[self.block[0]][self.block[1]][i][j]
         return map_c
 
+class Gametick(threading.Thread):
+    def __init__(self, main: Main):
+        threading.Thread.__init__(self)
+        self.main = main
+    def run(self):
+        while True:
+            time.sleep(0.5)
+            self.main.nextTick()
+            print_map(self.main.getMap())
+            print("")
+ 
+
 def print_map(map):
     for i in map:
         for j in i:
@@ -288,16 +305,15 @@ def print_map(map):
         print("")
 
 main = Main()
+gametick = Gametick(main)
 
 if __name__ == "__main__":
+    gametick.start()
     for i in range(0, 1000):
-        if i % 3 == 0:
+        if i % 6 == 0:
             main.moveBlock('r')
-        if i % 5 == 0:
+        if (i + 3) % 6 == 0:
             main.moveBlock('l')
         time.sleep(0.1)
-        print_map(main.getMap())
-        main.nextTick()
-        print(i)
 
 
