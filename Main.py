@@ -2,8 +2,17 @@ import random
 import time
 import threading
 import pygame
+import sys
 from pygame.locals import QUIT, KEYDOWN, K_LEFT, K_RIGHT, K_DOWN, K_SPACE
 
+pygame.init()
+pygame.key.set_repeat(30, 30)
+Background=pygame.display.set_mode([960, 480])
+FPSClock=pygame.time.Clock()
+Colors=((0,0,0), (0,255,255), (255,0,0), (0,255,0), (255,255,0), (0,0,255), (255,128,0), (255,0,255), (128,128,128))
+Width=12
+Height=22
+ 
 
 class Main:
     block_kind = 7
@@ -217,6 +226,11 @@ class Main:
 #                 (0,0,0,0)
 #             )
 #         ),
+
+    
+
+
+
     def __init__(self):
         self.map = [[0 for i in range(10)] for i in range(20)]
         self.block = [1, 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
@@ -307,7 +321,7 @@ def print_map(map):
 main = Main()
 gametick = Gametick(main)
 
-if __name__ == "__main__":
+if __name__ == "__main__     ":
     gametick.start()
     for i in range(0, 1000):
         if i % 6 == 0:
@@ -315,5 +329,49 @@ if __name__ == "__main__":
         if (i + 3) % 6 == 0:
             main.moveBlock('l')
         time.sleep(0.1)
+        
+class Block(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.turn = 0
+        self.type = main.block[random.randint(0, 6)]
+        self.data = self.type[self.turn] 
+        self.block_x = 5
+        self.block_y = 1-self.size
 
+    def draw(self):
+        map = main.getMap()
+        
+        for i in map:
+            for j in map[i]:
+                pass
+            
+        
+        # for index in range(len(self.data)):
+        #     xpos=index % self.size
+        #     ypos=index // self.size
+        #     if 0<=ypos+self.ypos<Height and 0<=xpos+self.xpos<Width and val !=0:
+        #         x_pos=25+(xpos+self.xpos)*25
+        #         y_pos=25+(ypos+self.ypos)*25
+        #         pygame.draw.rect(Background, Colors[val],x_pos, y_pos, 24, 24)
+    def run():
+        while True:
+            key = None
+            for event in pygame.event.get():
+                if event.type==QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type==KEYDOWN:
+                    key=event.key
+        
+            Background.fill((0,0,0))
+            for ypos in range(Height):
+                for xpos in range(Width):
+                    val=map[ypos][xpos]
+                    pygame.draw.rect(Background, Colors[val],(xpos*25+460, ypos*25+100, 24, 24))
+                    
+            pygame.display.update()
+
+block = Block()
+block.start()
 
