@@ -232,7 +232,7 @@ class Main:
 
 
     def __init__(self):
-        self.map = [[0 for i in range(10)] for i in range(20)]
+        self.map = [[0 for i in range(12)] for i in range(22)]
         self.block = [1, 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
         self.block_x = -4
         self.block_y = 3
@@ -304,7 +304,7 @@ class Gametick(threading.Thread):
     def run(self):
         while True:
             time.sleep(0.5)
-            self.main.nextTick()
+            # self.main.nextTick()
             print_map(self.main.getMap())
             print("")
  
@@ -331,13 +331,14 @@ if __name__ == "__main__     ":
         time.sleep(0.1)
         
 class Block(threading.Thread):
-    def __init__(self):
+    def __init__(self, main: Main):
         threading.Thread.__init__(self)
+        self.main = main
         self.turn = 0
-        self.type = main.block[random.randint(0, 6)]
+        self.type = Main.block[random.randint(0, Main.block_kind)]
         self.data = self.type[self.turn] 
-        self.block_x = 5
-        self.block_y = 1-self.size
+        # self.block_x = 5
+        # self.block_y = 1-self.size
 
     def draw(self):
         map = main.getMap()
@@ -354,7 +355,7 @@ class Block(threading.Thread):
         #         x_pos=25+(xpos+self.xpos)*25
         #         y_pos=25+(ypos+self.ypos)*25
         #         pygame.draw.rect(Background, Colors[val],x_pos, y_pos, 24, 24)
-    def run():
+    def run(self):
         while True:
             key = None
             for event in pygame.event.get():
@@ -367,11 +368,11 @@ class Block(threading.Thread):
             Background.fill((0,0,0))
             for ypos in range(Height):
                 for xpos in range(Width):
-                    val=map[ypos][xpos]
-                    pygame.draw.rect(Background, Colors[val],(xpos*25+460, ypos*25+100, 24, 24))
-                    
+                    self.map = main.getMap()
+                    val=self.map[ypos][xpos]
+                    pygame.draw.rect(Background, Colors[val],(xpos*25, ypos*25, 24, 24))                  
             pygame.display.update()
 
-block = Block()
+block = Block(main)
 block.start()
 
