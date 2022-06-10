@@ -3,16 +3,9 @@ import time
 import threading
 import pygame
 import sys
-from pygame.locals import QUIT, KEYDOWN, K_LEFT, K_RIGHT, K_DOWN, K_SPACE
+from pygame.locals import QUIT, KEYDOWN, KEYUP, K_UP, K_LEFT, K_RIGHT, K_DOWN, K_SPACE
 
-pygame.init()
-pygame.key.set_repeat(30, 30)
-Background=pygame.display.set_mode([960, 600])
-FPSClock=pygame.time.Clock()
-Colors=((0,0,0), (0,255,255), (255,0,0), (0,255,0), (255,255,0), (0,0,255), (255,128,0), (255,0,255), (128,128,128))
-Width=12
-Height=22
- 
+
 
 
 class Main:
@@ -299,6 +292,66 @@ class Main:
                     map_c[x][y] = Main.block[self.block[0]][self.block[1]][i][j]
         return map_c
 
+
+
+
+
+
+
+
+
+
+Colors=((0,0,0), (0,255,255), (255,0,0), (0,255,0), (255,255,0), (0,0,255), (255,128,0), (255,0,255), (128,128,128))
+Width=12
+Height=22
+
+main = Main()
+
+class Screen(threading.Thread):
+    def run(self):
+        while main.is_run:
+            pygame.init()
+            self.screen = pygame.display.set_mode((960, 640))
+            
+            
+            self.setBackGround()
+            
+            while main.is_run:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        main.is_run = False
+                    elif event.type==KEYUP:
+                        key=event.key
+                        
+                        if key == pygame.K_UP:
+                            main.turnBlock('r')
+                        elif key == pygame.K_DOWN:
+                            pass
+                        elif key == pygame.K_LEFT:
+                            main.moveBlock('l')
+                        elif key == pygame.K_RIGHT:
+                            main.moveBlock('r')
+                        
+                self.map = main.getMap()
+                #Background.fill((0,0,0))
+                for ypos in range(Height):
+                    for xpos in range(Width):
+                        val=self.map[ypos][xpos]
+                        # if(val == 0):
+                        #     continue
+                        pygame.draw.rect(self.screen, Colors[val],((xpos+1)*25, ypos*25, 24, 24))
+                pygame.display.update()
+            pygame.quit()
+            sys.exit()
+            
+    def setBackGround(self):
+        for i in range(Height-1):
+            pygame.draw.rect(self.screen, Colors[8],(0, i*25, 24, 24))
+            pygame.draw.rect(self.screen, Colors[8],(i*25, i*25, 24, 24))
+
+screen = Screen()
+screen.start()
+
 class Gametick(threading.Thread):
     def __init__(self, main: Main):
         threading.Thread.__init__(self)
@@ -307,89 +360,5 @@ class Gametick(threading.Thread):
         while main.is_run:
             time.sleep(0.2)
             self.main.nextTick()
- 
-
-def print_map(map):
-    for i in map:
-        for j in i:
-            if(j != 0):
-                print("■", end=" ")
-            else:
-                print("□", end=" ")
-        print("")
-        
-    
-
-main = Main()
-gametick = Gametick(main)
-gametick.start()
-
-if __name__ == "__main__     ":
-    gametick.start()
-    for i in range(0, 1000):
-        if i % 6 == 0:
-            main.moveBlock('r')
-        if (i + 3) % 6 == 0:
-            main.moveBlock('l')
-        time.sleep(0.1)
-        
-class PG(threading.Thread):
-    def __init__(self, main: Main):
-        threading.Thread.__init__(self)
-        self.main = main
-        self.turn = 0
-        self.type = Main.block[random.randint(0, Main.block_kind-1)]
-        self.data = self.type[self.turn] 
-        # self.block_x = 5
-        # self.block_y = 1-self.size
-    
-    def setBackGround():
-        for i in range(Height-1):
-            pygame.draw.rect(Background, Colors[8],(0, i*25, 24, 24))
-            pygame.draw.rect(Background, Colors[8],(i*25, i*25, 24, 24))
-        #for i in range()
-
-
-    def draw(self):
-        map = main.getMap()
-        
-        for i in map:
-            for j in map[i]:
-                pass
-            
-        
-        # for index in range(len(self.data)):
-        #     xpos=index % self.size
-        #     ypos=index // self.size
-        #     if 0<=ypos+self.ypos<Height and 0<=xpos+self.xpos<Width and val !=0:
-        #         x_pos=25+(xpos+self.xpos)*25
-        #         y_pos=25+(ypos+self.ypos)*25
-        #         pygame.draw.rect(Background, Colors[val],x_pos, y_pos, 24, 24)
-    def run(self):
-        PG.setBackGround()
-        while main.is_run:
-            key = None
-            for event in pygame.event.get():
-                print(event)
-                if event.type==pygame.QUIT:
-                    print("bf false")
-                    main.is_run = False
-                    print("af false")
-                elif event.type==KEYDOWN:
-                    key=event.key
-        
-            self.map = main.getMap()
-            #Background.fill((0,0,0))
-            for ypos in range(Height):
-                for xpos in range(Width):
-                    val=self.map[ypos][xpos]
-                    # if(val == 0):
-                    #     continue
-                    pygame.draw.rect(Background, Colors[val],((xpos+1)*25, ypos*25, 24, 24))                  
-            pygame.display.update()
-        pygame.quit()
-        sys.exit()
-
-pg = PG(main)
-pg.start()
-
+tick = Gametick(main)
+tick.start()
