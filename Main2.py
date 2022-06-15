@@ -223,15 +223,16 @@ class Main:
 #             )
 #         ),
 
-    
-
 
 
     def __init__(self):
         self.map = [[0 for i in range(Width)] for i in range(Height)]
-        self.block = [1, 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
         self.block_x = -4
         self.block_y = 3
+        self.block_list = []
+        self.addBlock()
+        self.addBlock()
+        self.block = [self.block_list.pop(), 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
     def nextTick(self):
         is_overlap = False
         map_c = self.copyMap()
@@ -258,14 +259,18 @@ class Main:
         # 움직이는 블럭 초기화 / self.map 에다가 박아 넣음
         else:
             self.map = self.getMap()
-            self.block = [random.randint(0, Main.block_kind-1), 0]
+            self.block = [self.block_list.pop(), 0]
             self.block_x = -4
             self.block_y = 3
             
             result = self.checkLine()
             for i in result:
-                for j in self.map[i]:
-                    j = 0
+                for j in range(i-1, -1, -1):
+                    self.map[j + 1] = self.map[j]
+            
+            if len(self.block_list) < 7:
+                self.addBlock()
+                    
             print("\n\n")
     def checkLine(self):
         result = []
@@ -331,7 +336,11 @@ class Main:
                         continue
                     map_c[x][y] = Main.block[self.block[0]][self.block[1]][i][j]
         return map_c
-
+    def addBlock(self):
+        l = list(range(0, Main.block_kind-1))
+        random.shuffle(l)
+        for i in l:
+            self.block_list.append(i)
 
 
 
@@ -371,6 +380,10 @@ class Screen(threading.Thread):
                             main.moveBlock('l')
                         elif key == pygame.K_RIGHT:
                             main.moveBlock('r')
+                        elif key == pygame.K_z:
+                            main.turnBlock('l')
+                        elif key == pygame.K_x:
+                            main.turnBlock('r')
                         
                 self.map = main.getMap()
                 #Background.fill((0,0,0))
