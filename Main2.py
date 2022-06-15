@@ -1,4 +1,5 @@
 import random
+from tabnanny import check
 import time
 import threading
 import pygame
@@ -227,7 +228,7 @@ class Main:
 
 
     def __init__(self):
-        self.map = [[0 for i in range(12)] for i in range(22)]
+        self.map = [[0 for i in range(Width)] for i in range(Height)]
         self.block = [1, 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
         self.block_x = -4
         self.block_y = 3
@@ -257,20 +258,59 @@ class Main:
         # 움직이는 블럭 초기화 / self.map 에다가 박아 넣음
         else:
             self.map = self.getMap()
-            self.block = [random.randint(1, Main.block_kind-1), 0]
+            self.block = [random.randint(0, Main.block_kind-1), 0]
             self.block_x = -4
             self.block_y = 3
-        
+            
+            result = self.checkLine()
+            for i in result:
+                for j in self.map[i]:
+                    j = 0
+            print("\n\n")
+    def checkLine(self):
+        result = []
+        index = 0
+        for i in self.map:
+            print(index, i)
+            isFilled = True
+            for j in i:
+                if j == 0:
+                    print("0")
+                    isFilled = False
+                    break
+            if isFilled:
+                result.append(index)
+            index += 1
+        return result
+        pass
     def turnBlock(self, dir): # dir 은 r 또는 l 만 받음
         if(dir == "r"):
             self.block[1] = (self.block[1] + 1) % 4
         if(dir == "l"):
             self.block[1] = (self.block[1] - 1) % 4
     def moveBlock(self, dir):
+        dir_y = 0
         if(dir == 'r'):
-            self.block_y += 1
+            dir_y = 1
         if(dir == 'l'):
-            self.block_y -= 1
+            dir_y = -1
+        for i in range(4):
+                for j in range(4):
+                    x = i + self.block_x
+                    y = j + self.block_y + dir_y
+                    
+                    # 에러 방지
+                    if x < 0:
+                        continue
+                    
+                    if Main.block[self.block[0]][self.block[1]][i][j] == 0:
+                        continue
+                    if y < 0 or y >=10:
+                        return
+                    if self.map[x][y] != 0:
+                        print(x, y)
+                        return
+        self.block_y += dir_y
     def copyMap(self):
         map = []
         for i in self.map:
@@ -302,8 +342,8 @@ class Main:
 
 
 Colors=((0,0,0), (0,255,255), (255,0,0), (0,255,0), (255,255,0), (0,0,255), (255,128,0), (255,0,255), (128,128,128))
-Width=12
-Height=22
+Width=10
+Height=20
 
 main = Main()
 
@@ -320,13 +360,13 @@ class Screen(threading.Thread):
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         main.is_run = False
-                    elif event.type==KEYUP:
+                    elif event.type==KEYDOWN:
                         key=event.key
                         
                         if key == pygame.K_UP:
                             main.turnBlock('r')
                         elif key == pygame.K_DOWN:
-                            pass
+                            main.nextTick()
                         elif key == pygame.K_LEFT:
                             main.moveBlock('l')
                         elif key == pygame.K_RIGHT:
