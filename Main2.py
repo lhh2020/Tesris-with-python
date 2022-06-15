@@ -227,12 +227,15 @@ class Main:
 
     def __init__(self):
         self.map = [[0 for i in range(Width)] for i in range(Height)]
+        self.level = 1
+        self.score = 0
         self.block_x = -4
         self.block_y = 3
         self.block_list = []
+        self.hold_block = -1
         self.addBlock()
         self.addBlock()
-        self.block = [self.block_list.pop(), 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
+        self.block = [self.block_list.pop(0), 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
     def nextTick(self):
         is_overlap = False
         map_c = self.copyMap()
@@ -253,13 +256,13 @@ class Main:
                     if self.map[x][y] != 0:
                         is_overlap = True
                         break
-
+        print(self.block_list)
         if is_overlap == False:
             self.block_x += 1
         # 움직이는 블럭 초기화 / self.map 에다가 박아 넣음
         else:
             self.map = self.getMap()
-            self.block = [self.block_list.pop(), 0]
+            self.block = [self.block_list.pop(0), 0]
             self.block_x = -4
             self.block_y = 3
             
@@ -270,17 +273,13 @@ class Main:
             
             if len(self.block_list) < 7:
                 self.addBlock()
-                    
-            print("\n\n")
     def checkLine(self):
         result = []
         index = 0
         for i in self.map:
-            print(index, i)
             isFilled = True
             for j in i:
                 if j == 0:
-                    print("0")
                     isFilled = False
                     break
             if isFilled:
@@ -313,7 +312,6 @@ class Main:
                     if y < 0 or y >=10:
                         return
                     if self.map[x][y] != 0:
-                        print(x, y)
                         return
         self.block_y += dir_y
     def copyMap(self):
@@ -341,6 +339,21 @@ class Main:
         random.shuffle(l)
         for i in l:
             self.block_list.append(i)
+    def hold(self):
+        if(self.hold_block == -1):
+            self.hold_block = self.block[0]
+            self.block = [self.block_list.pop(0), 0]
+            self.block_x = -4
+            self.block_y = 3
+        else:
+            a = self.hold_block
+            self.hold_block = self.block[0]
+            self.block = [a, 0]
+            self.block_x = -4
+            self.block_y = 3
+    def addScore(self):
+        self.score = 100*level
+        
 
 
 
@@ -384,23 +397,39 @@ class Screen(threading.Thread):
                             main.turnBlock('l')
                         elif key == pygame.K_x:
                             main.turnBlock('r')
+                        elif key == pygame.K_c:
+                            main.hold()
                         
                 self.map = main.getMap()
-                #Background.fill((0,0,0))
                 for ypos in range(Height):
                     for xpos in range(Width):
                         val=self.map[ypos][xpos]
                         # if(val == 0):
                         #     continue
                         pygame.draw.rect(self.screen, Colors[val],((xpos+1)*25, ypos*25, 24, 24))
+                if main.hold_block != -1:
+                    for i in range(4):
+                        for j in range(4):
+                            pygame.draw.rect(self.screen, Colors[Main.block[main.hold_block][0][i][j]],((Width+3)*25+10 + 20*i, 35 + 20*j, 20, 20))
+                if len(main.block_list) != 0:
+                    for i in range(4):
+                        for j in range(4):
+                            # print(Main.block[main.block_list[0]][0][i][j], end="")
+                            pygame.draw.rect(self.screen, Colors[Main.block[main.block_list[0]][0][i][j]],((Width+3)*25+10 + 20*i, 185 + 20*j, 20, 20))
+                        # print()
+                    # print()
                 pygame.display.update()
             pygame.quit()
             sys.exit()
             
     def setBackGround(self):
-        for i in range(Height-1):
-            pygame.draw.rect(self.screen, Colors[8],(0, i*25, 24, 24))
-            pygame.draw.rect(self.screen, Colors[8],(i*25, i*25, 24, 24))
+        pygame.draw.rect(self.screen, Colors[8],(0, 0, 24, 25*Height))
+        pygame.draw.rect(self.screen, Colors[8],((Width+1)*25, 0, 25, 25*Height))
+        pygame.draw.rect(self.screen, Colors[8],(0, Height*25, (Width+2)*25-1, 25))
+        
+        
+        pygame.draw.rect(self.screen, Colors[8],((Width+3)*25, 25, 100, 100))
+        pygame.draw.rect(self.screen, Colors[0],((Width+3)*25+10, 35, 80, 80))
 
 screen = Screen()
 screen.start()
