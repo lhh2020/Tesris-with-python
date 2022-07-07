@@ -261,6 +261,7 @@ class Main:
         self.block_y = 3
         self.block_list = []
         self.hold_block = -1
+        self.hold_able = True
         self.addBlock()
         self.addBlock()
         self.block = [self.block_list.pop(0), 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
@@ -284,23 +285,40 @@ class Main:
                     if self.map[x][y] != 0:
                         is_overlap = True
                         break
-        print(self.block_list)
         if is_overlap == False:
             self.block_x += 1
         # 움직이는 블럭 초기화 / self.map 에다가 박아 넣음
         else:
+            # 죽는지 확인
+            is_die = False
+            if Main.block[0] != -1:
+                for i in range(4):
+                    for j in range(4):
+                        x = i + self.block_x + 1
+                        y = j + self.block_y
+                        if Main.block[self.block[0]][self.block[1]][i][j] == 0:
+                            continue
+                        if x < 0:
+                            is_die = True
+                            self.is_run = False
+                            break
+            
+            
+            # self.map 새로 지정
             self.map = self.getMap()
             self.block = [self.block_list.pop(0), 0]
             self.block_x = -4
             self.block_y = 3
             
             result = self.checkLine()
+            self.addScore(len(result))
             for i in result:
                 for j in range(i-1, -1, -1):
                     self.map[j + 1] = self.map[j]
             
             if len(self.block_list) < 7:
                 self.addBlock()
+            self.hold_able = True
     def checkLine(self):
         result = []
         index = 0
@@ -397,6 +415,8 @@ class Main:
         for i in l:
             self.block_list.append(i)
     def hold(self):
+        if self.hold_able == False:
+            return
         if(self.hold_block == -1):
             self.hold_block = self.block[0]
             self.block = [self.block_list.pop(0), 0]
@@ -408,8 +428,12 @@ class Main:
             self.block = [a, 0]
             self.block_x = -4
             self.block_y = 3
-    def addScore(self):
-        self.score = 100*level
+        self.hold_able = False
+    def addScore(self, n):
+        if n < 0:
+            n = 1
+        self.score += 100*self.level*n
+        print(self.score)
         
 
 
@@ -428,6 +452,7 @@ main = Main()
 
 class Screen(threading.Thread):
     def run(self):
+        self.print = True
         while main.is_run:
             pygame.init()
             self.screen = pygame.display.set_mode((960, 640))
@@ -456,7 +481,35 @@ class Screen(threading.Thread):
                             main.turnBlock('r')
                         elif key == pygame.K_c:
                             main.hold()
-                        
+                        elif key == pygame.K_SPACE:
+                            for n in range(1, Height):
+                                is_overlap = False
+                                target = -1;
+                                if Main.block[0] != -1:
+                                    for i in range(4):
+                                        for j in range(4):
+                                            x = i + main.block_x + n
+                                            y = j + main.block_y
+                                            if x < 0:
+                                                continue
+                                            if y < 0 or y >=10:
+                                                continue
+                                            if Main.block[main.block[0]][main.block[1]][i][j] == 0:
+                                                continue
+                                            if x >= 20:
+                                                is_overlap = True
+                                                target = n - 1
+                                                break
+                                            if main.map[x][y] != 0:
+                                                is_overlap = True
+                                                target = n - 1
+                                                break
+                                if is_overlap:
+                                    main.block_x += target
+                                    main.nextTick()
+                                    break
+                
+                # 게임 맵 출력
                 self.map = main.getMap()
                 for ypos in range(Height):
                     for xpos in range(Width):
@@ -464,17 +517,72 @@ class Screen(threading.Thread):
                         # if(val == 0):
                         #     continue
                         pygame.draw.rect(self.screen, Colors[val],((xpos+1)*25, ypos*25, 24, 24))
+
+                # hold 블럭
                 if main.hold_block != -1:
                     for i in range(4):
                         for j in range(4):
                             pygame.draw.rect(self.screen, Colors[Main.block[main.hold_block][0][i][j]],((Width+3)*25+10 + 20*i, 35 + 20*j, 20, 20))
+
+
+                # next 블럭
                 if len(main.block_list) != 0:
                     for i in range(4):
                         for j in range(4):
                             # print(Main.block[main.block_list[0]][0][i][j], end="")
-                            pygame.draw.rect(self.screen, Colors[Main.block[main.block_list[0]][0][i][j]],((Width+3)*25+10 + 20*i, 185 + 20*j, 20, 20))
+                            pygame.draw.rect(self.screen, Colors[Main.block[main.block_list[0]][0][i][j]],((Width+3)*25+10 + 20*j, 185 + 20*i, 20, 20))
+                            # pygame.draw.rect(self.screen, Colors[Main.block[main.block_list[0]][0][i][j]],((Width+3)*25+10 + 20*i, 185 + 20*j, 20, 20))
                         # print()
                     # print()
+                # 고스트
+                
+                for n in range(1, Height):
+                    is_overlap = False
+                    target = -1;
+                    if Main.block[0] != -1:
+                        for i in range(4):
+                            for j in range(4):
+                                x = i + main.block_x + n
+                                y = j + main.block_y
+                                if x < 0:
+                                    continue
+                                if y < 0 or y >=10:
+                                    continue
+                                if Main.block[main.block[0]][main.block[1]][i][j] == 0:
+                                    continue
+                                if x >= 20:
+                                    is_overlap = True
+                                    target = n - 1
+                                    break
+                                if main.map[x][y] != 0:
+                                    is_overlap = True
+                                    target = n - 1
+                                    break
+                    if is_overlap:
+                        # main.block_x + target : 블럭 위치
+                        for i in range(4):
+                            for j in range(4):
+                                ypos = main.block_x + target + i
+                                xpos = main.block_y + j
+                                if Main.block[main.block[0]][main.block[1]][i][j] == 0:
+                                    continue
+                                pygame.draw.rect(self.screen, (135, 135, 204),((xpos+1)*25, ypos*25, 24, 24))
+                        break
+                
+                # 고스트
+                
+                
+                # 스코어
+                
+                
+                pygame.draw.rect(self.screen, (0, 0, 0),(500, 500, 100, 100))
+                
+                text_color = (255, 255, 255)
+                font = pygame.font.SysFont("arial", 30)
+                text = font.render(str(main.score), True, text_color)
+                self.screen.blit(text, (500, 500))
+                
+                # 스코어
                 pygame.display.update()
             pygame.quit()
             sys.exit()
@@ -497,7 +605,10 @@ class Gametick(threading.Thread):
         self.main = main
     def run(self):
         while main.is_run:
-            time.sleep(0.2)
+            t = 1/((main.score + 100)/100)
+            if t == 0:
+                t = 1
+            time.sleep(t)
             self.main.nextTick()
 tick = Gametick(main)
 tick.start()
