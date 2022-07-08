@@ -1,3 +1,5 @@
+# 필요한 기본 기능들을 가져옴
+
 import random
 from tabnanny import check
 import time
@@ -10,36 +12,19 @@ from pygame.locals import QUIT, KEYDOWN, KEYUP, K_UP, K_LEFT, K_RIGHT, K_DOWN, K
 
 
 class Main:
-    is_run = True
-    block_kind = 7
+    block_start_x = -2
+    block_start_y = 3
+    is_run = True # 실행중임 확인하는 변수
+    block_kind = 7 # 총 블럭 갯수
+    # SRS (Super Rotation System) Offset
     All_MINO_SRS = [
                 (((0,0),(-1,0),(-1,1),(0,-2),(-1,-2)),   ((0,0),(1,0),(1,1),(0,-2),(1,-2))),    #0
                 (((0,0),(1,0),(1,-1),(0,2),(1,2)),       ((0,0),(1,0),(1,-1),(0,2),(1,2))),     #1
                 (((0,0),(1,0),(1,1),(0,-2),(1,-2)),      ((0,0),(-1,0),(-1,1),(0,-2),(-1,-2))), #2
                 (((0,0),(-1,0),(-1,-1),(0,2),(-1,2)),    ((0,0),(-1,0),(-1,-1),(0,2),(-1,2)))   #3    
             ]
-    # All_MINO_SRS = [
-    #             ((0,0),(-1,0),(-1,1),(0,-2),(-1,-2)),  #0->1
-    #             ((0,0),(1,0),(1,-1),(0,2),(1,2)),      #1->0
-    #             ((0,0),(1,0),(1,-1),(0,2),(1,2)),      #1->2
-    #             ((0,0),(-1,0),(-1,1),(0,-2),(-1,-2)),  #2->1
-    #             ((0,0),(1,0),(1,1),(0,-2),(1,-2)),     #2->3
-    #             ((0,0),(-1,0),(-1,-1),(0,2),(-1,2)),   #3->2
-    #             ((0,0),(-1,0),(-1,-1),(0,2),(-1,2)),   #3->0
-    #             ((0,0),(1,0),(1,1),(0,-2),(1,-2))      #0->3
-    #         ]
 
-    # I_MINO_SRS = [
-    #             ((0,0),(-2,0),(1,0),(-2,-1),(1,2)),
-    #             ((0,0),(2,0),(-1,0),(2,1),(-1,-2)),
-    #             ((0,0),(-1,0),(2,0),(-1,2),(2,-1)),
-    #             ((0,0),(1,0),(-2,0),(1,-2),(-2,1)),
-    #             ((0,0),(2,0),(-1,0),(2,1),(-1,-2)),
-    #             ((0,0),(-2,0),(1,0),(-2,-1),(1,2)),
-    #             ((0,0),(1,0),(-2,0),(1,-2),(-2,1)),
-    #             ((0,0),(-1,0),(2,0),(-1,2),(2,-1)), 
-    #         ]
-
+    # 블럭 모양
     block = [
         (
             (
@@ -224,47 +209,23 @@ class Main:
             )
         )
     ]
-#         (
-#             (
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0)
-#             ),
-#             (
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0)
-#             ),
-#             (
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0)
-#             ),
-#             (
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0),
-#                 (0,0,0,0)
-#             )
-#         ),
 
-
-
+    # 게임 기본 변수 설정
     def __init__(self):
-        self.map = [[0 for i in range(Width)] for i in range(Height)]
-        self.level = 1
-        self.score = 0
-        self.block_x = -4
-        self.block_y = 3
-        self.block_list = []
-        self.hold_block = -1
+        self.map = [[0 for i in range(Width)] for i in range(Height)]  # 블럭 존재할 맵
+        self.level = 1 # 미구현
+        self.score = 0 # 테트리스 점수
+        self.block_x = Main.block_start_x # 블럭 정보 설정
+        self.block_y = Main.block_start_y # 블럭 정보 설정
+        self.block_list = [] # 블럭 정보 설정
+        self.hold_block = -1 # 홀드 블럭 기본 설정
         self.hold_able = True
         self.addBlock()
         self.addBlock()
         self.block = [self.block_list.pop(0), 0] # 블럭 종류 / 블럭 돌림 / 블럭 높이 / 블럭 위치
+
+    # 블럭을 한칸 내리고 블럭이 정지할 것인지 확인하고 정지시킴
+    # 또한 블럭이 가득 차면 게임을 끝냄
     def nextTick(self):
         is_overlap = False
         map_c = self.copyMap()
@@ -294,7 +255,7 @@ class Main:
             if Main.block[0] != -1:
                 for i in range(4):
                     for j in range(4):
-                        x = i + self.block_x + 1
+                        x = i + self.block_x
                         y = j + self.block_y
                         if Main.block[self.block[0]][self.block[1]][i][j] == 0:
                             continue
@@ -307,8 +268,8 @@ class Main:
             # self.map 새로 지정
             self.map = self.getMap()
             self.block = [self.block_list.pop(0), 0]
-            self.block_x = -4
-            self.block_y = 3
+            self.block_x = Main.block_start_x
+            self.block_y = Main.block_start_y
             
             result = self.checkLine()
             self.addScore(len(result))
@@ -319,6 +280,7 @@ class Main:
             if len(self.block_list) < 7:
                 self.addBlock()
             self.hold_able = True
+    # 가득 찬 줄의 index 를 반환함
     def checkLine(self):
         result = []
         index = 0
@@ -332,7 +294,8 @@ class Main:
                 result.append(index)
             index += 1
         return result
-        pass
+
+    # 오른쪽 또는 왼쪽으로 블럭을 돌림 (SRS Super Rotation System 을 적용함)
     def turnBlock(self, dir): # dir 은 r 또는 l 만 받음
         turning = 0
         turn = -1
@@ -341,34 +304,36 @@ class Main:
         if(dir == "r"):
             turning = 1
             turn = 0                        
-            #self.block[1] = (self.block[1] + 1) % 4
         if(dir == "l"):
             turning = -1
             turn = 1
-            #self.block[1] = (self.block[1] - 1) % 4
-        # Main.All_MINO_SRS[self.block[1]][turn]
         for k in range(5):
             able = True
-            Main.All_MINO_SRS[self.block[1]][turn][k]                 
+            # Main.All_MINO_SRS[self.block[1]][turn][k]                 
             for i in range(4):
                 for j in range(4):
                     x = i + self.block_x - Main.All_MINO_SRS[self.block[1]][turn][k][1]
-                    y = j + self.block_y + Main.All_MINO_SRS[self.block[1]][turn][k][0]                
-                    if Main.block[self.block[0]][self.block[1]][j][i] == 0:
+                    y = j + self.block_y + Main.All_MINO_SRS[self.block[1]][turn][k][0]
+                    # if k == 2:
+                    #     print(self.block[1], Main.All_MINO_SRS[self.block[1]][turn][k], x, y) 
+                    print(self.block[1], self.block[1] - 1,  Main.block[self.block[0]][(self.block[1] - 1)%4][i][j], "", end="")
+                    if Main.block[self.block[0]][(self.block[1] - 1)%4][i][j] == 0:
                         continue           
                     if x >=20:
-                        able = False
-                        break
+                        # able = False
+                        continue
                     if y < 0 or y >=10:
-                        print('No')
+                        # print('<>')
                         able = False
-                        break
+                        continue
                     if self.map[x][y] !=0:
+                        # print("block")
                         able = False
-                        break
-                if able == False:
-                    break
+                print("")
+            print("")
             if not able:
+                if k == 2:
+                    print("Not")
                 continue
             self.block_y = self.block_y + Main.All_MINO_SRS[self.block[1]][turn][k][0]
             self.block_x = self.block_x - Main.All_MINO_SRS[self.block[1]][turn][k][1]
@@ -614,9 +579,7 @@ class Gametick(threading.Thread):
         self.main = main
     def run(self):
         while main.is_run:
-            t = 1/((main.score + 100)/100)
-            if t == 0:
-                t = 1
+            t = 1/(((main.score + 1)/10 + 100)/100)
             time.sleep(t)
             self.main.nextTick()
 tick = Gametick(main)
